@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% block title %}College Students{% endblock %}
+{% block breadcrumb %}College Students{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">🏫 College <span>Students</span></h1>
+  <p class="page-subtitle">Manage FA · ICS · ICOM · FSC Medical · FSC Engineering · IT programs</p>
+</div>
+
+<!-- Custom Tab Nav -->
+<div class="custom-tabs fade-up fade-up-1">
+  <button class="custom-tab active" data-tab="view"   data-tab-group="college">
+    <i class="bi bi-table"></i> View / Search
+  </button>
+  <button class="custom-tab" data-tab="add"    data-tab-group="college">
+    <i class="bi bi-person-plus-fill"></i> Add Student
+  </button>
+  <button class="custom-tab" data-tab="update" data-tab-group="college">
+    <i class="bi bi-pencil-fill"></i> Update
+  </button>
+  <button class="custom-tab" data-tab="delete" data-tab-group="college">
+    <i class="bi bi-trash3-fill"></i> Delete
+  </button>
+</div>
+
+<!-- ═══ TAB: VIEW ═══════════════════════════════════════════ -->
+<div class="tab-pane-custom active" data-tab="view" data-tab-group="college">
+  <div class="filter-bar fade-up fade-up-2">
+    <div class="form-group">
+      <label>Program</label>
+      <select class="form-select" id="filterProgram" onchange="loadCollegeTable()">
+        <option value="All">All Programs</option>
+        {% for p in programs %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Section</label>
+      <select class="form-select" id="filterSection" onchange="loadCollegeTable()">
+        <option value="All">All Sections</option>
+        {% for s in sections %}<option value="{{ s }}">Section {{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="d-flex gap-2 align-items-end">
+      <button class="btn-gold" onclick="loadCollegeTable()">
+        <i class="bi bi-search"></i> Search
+      </button>
+      <button class="btn-ghost" onclick="downloadCSV()">
+        <i class="bi bi-download"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <div class="glass-card fade-up fade-up-3">
+    <div class="card-header-custom">
+      <div class="card-header-icon"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="card-header-title">College Students</div>
+        <div class="card-header-sub" id="colCount">Loading…</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="table-responsive">
+        <table id="collegeTable" class="w-100">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: ADD ════════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="add" data-tab-group="college">
+  <div class="glass-card fade-up fade-up-1" style="max-width:760px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--green-bg);border-color:rgba(16,216,118,.3);color:var(--green)">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Add New College Student</div>
+        <div class="card-header-sub">Fill in the student details below</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Student Name *</label>
+          <input class="form-control" id="add_name" placeholder="e.g. Muhammad Ali">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Father's Name</label>
+          <input class="form-control" id="add_father" placeholder="e.g. Muhammad Imran">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Program *</label>
+          <select class="form-select" id="add_program"
+            onchange="autoFillFee(this, {{ default_fees|tojson }}, 'add_fee')">
+            {% for p in programs %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Section</label>
+          <select class="form-select" id="add_section">
+            {% for s in sections %}<option value="{{ s }}">Section {{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Roll Number *</label>
+          <input class="form-control" id="add_roll" placeholder="e.g. 2024-ICS-001">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Academic Year *</label>
+          <input class="form-control" id="add_year" placeholder="e.g. 2024-2025">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Total Annual Fee (Rs.) *</label>
+          <input class="form-control" id="add_fee" type="number" min="0" step="500"
+            value="{{ default_fees[programs[0]] if programs else 15000 }}">
+        </div>
+
+        <!-- Fee Preview -->
+        <div class="col-12">
+          <div id="feePreview" class="d-flex gap-3 flex-wrap mt-1">
+            <div style="background:var(--gold-glow);border:1px solid var(--border-gold);
+              border-radius:8px;padding:10px 16px;font-size:.85rem;color:var(--gold)">
+              <i class="bi bi-info-circle"></i>
+              Each of <strong>4 installments</strong>:
+              <strong id="installPreview">–</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn-gold" onclick="addCollegeStudent()">
+          <i class="bi bi-check-lg"></i> Add Student
+        </button>
+        <button class="btn-ghost" onclick="clearAddForm()">
+          <i class="bi bi-x-lg"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: UPDATE ══════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="update" data-tab-group="college">
+  <div class="glass-card fade-up fade-up-1" style="max-width:760px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--blue-bg);border-color:rgba(77,159,255,.3);color:var(--blue)">
+        <i class="bi bi-pencil-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Update College Student</div>
+        <div class="card-header-sub">Search by Student ID then edit</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="d-flex gap-2 mb-4">
+        <input class="form-control" id="upd_sid" placeholder="Enter Student ID (e.g. COL-XXXXXXXX)">
+        <button class="btn-gold flex-shrink-0" onclick="fetchCollegeForUpdate()">
+          <i class="bi bi-search"></i> Fetch
+        </button>
+      </div>
+      <div id="updateForm" style="display:none">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input class="form-control" id="upd_name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Father's Name</label>
+            <input class="form-control" id="upd_father">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Program</label>
+            <select class="form-select" id="upd_program">
+              {% for p in programs %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Section</label>
+            <select class="form-select" id="upd_section">
+              {% for s in sections %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Roll No</label>
+            <input class="form-control" id="upd_roll">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Academic Year</label>
+            <input class="form-control" id="upd_year">
+          </div>
+        </div>
+        <button class="btn-gold mt-4" onclick="saveCollegeUpdate()">
+          <i class="bi bi-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: DELETE ══════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="delete" data-tab-group="college">
+  <div class="glass-card fade-up fade-up-1" style="max-width:600px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--red-bg);border-color:rgba(255,77,77,.3);color:var(--red)">
+        <i class="bi bi-trash3-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Delete College Student</div>
+        <div class="card-header-sub">This action is permanent</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="d-flex gap-2 mb-4">
+        <input class="form-control" id="del_sid" placeholder="Enter Student ID">
+        <button class="btn-gold flex-shrink-0" onclick="fetchCollegeForDelete()">
+          <i class="bi bi-search"></i> Fetch
+        </button>
+      </div>
+      <div id="deletePreview" style="display:none">
+        <div id="deleteInfo" class="mb-3" style="background:var(--red-bg);border:1px solid rgba(255,77,77,.25);
+          border-radius:10px;padding:14px 18px;font-size:.87rem;"></div>
+        <button class="btn-danger" onclick="confirmDeleteCollege()">
+          <i class="bi bi-trash3-fill"></i> Permanently Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COL_DEFAULT_FEES = {{ default_fees|tojson }};
+let collegeData = [];
+
+// ── Update installment preview ─────────────────────────────
+document.getElementById('add_fee').addEventListener('input', updateInstallPreview);
+document.getElementById('add_program').addEventListener('change', () => setTimeout(updateInstallPreview, 50));
+function updateInstallPreview() {
+  const fee = parseFloat(document.getElementById('add_fee').value) || 0;
+  document.getElementById('installPreview').textContent = fmtPKR(fee / 4);
+}
+updateInstallPreview();
+
+// ── Load / render college table ────────────────────────────
+function loadCollegeTable() {
+  const prog = document.getElementById('filterProgram').value;
+  const sec  = document.getElementById('filterSection').value;
+  let url = '/api/college/students';
+  const params = new URLSearchParams();
+  if (prog !== 'All') params.append('program', prog);
+  if (sec  !== 'All') params.append('section', sec);
+  if ([...params].length) url += '?' + params;
+
+  fetch(url).then(r => r.json()).then(rows => {
+    collegeData = rows;
+    document.getElementById('colCount').textContent = rows.length + ' student(s)';
+    buildTable('collegeTable', rows, [
+      { title: 'Student ID', data: 'Student_ID',
+        render: d => `<span class="id-badge">${d}</span>` },
+      { title: 'Name', data: 'Name',
+        render: (d, _, row) => `<strong>${d}</strong><br><small style="color:var(--text-muted)">${row.Father_Name||''}</small>` },
+      { title: 'Program', data: null,
+        render: (_, __, row) => `<span class="badge-program">${row.Program||row.Class||''}</span>` },
+      { title: 'Section', data: 'Section' },
+      { title: 'Roll No', data: 'Roll_No', render: d => `<span class="mono" style="font-size:.78rem">${d}</span>` },
+      { title: 'Annual Fee', data: 'Total_Annual_Fee',
+        render: d => `<span class="amount-cell">${fmtPKR(d)}</span>` },
+      { title: 'I1', data: 'Install1_Status', render: d => statusBadge(d) },
+      { title: 'I2', data: 'Install2_Status', render: d => statusBadge(d) },
+      { title: 'I3', data: 'Install3_Status', render: d => statusBadge(d) },
+      { title: 'I4', data: 'Install4_Status', render: d => statusBadge(d) },
+      { title: 'All Paid', data: 'All_Paid', render: d => statusBadge(d) },
+    ], { order: [[1, 'asc']] });
+  });
+}
+loadCollegeTable();
+
+// ── Add student ────────────────────────────────────────────
+async function addCollegeStudent() {
+  const data = {
+    name:          document.getElementById('add_name').value.trim(),
+    father_name:   document.getElementById('add_father').value.trim(),
+    program:       document.getElementById('add_program').value,
+    section:       document.getElementById('add_section').value,
+    roll_no:       document.getElementById('add_roll').value.trim(),
+    academic_year: document.getElementById('add_year').value.trim(),
+    total_fee:     parseFloat(document.getElementById('add_fee').value) || 0,
+  };
+  if (!data.name || !data.roll_no || !data.academic_year || data.total_fee <= 0)
+    return showToast('Please fill all required fields', 'error');
+
+  const res = await apiPost('/api/college/add', data);
+  if (res.success) {
+    Swal.fire({ icon:'success', title:'Student Added!',
+      html: `<p>${res.message}</p><code style="color:var(--gold)">${res.student_id}</code>`,
+      confirmButtonText:'Great!' });
+    clearAddForm(); loadCollegeTable();
+  } else showToast(res.message, 'error');
+}
+
+function clearAddForm() {
+  ['add_name','add_father','add_roll','add_year'].forEach(id => document.getElementById(id).value='');
+  const prog = document.getElementById('add_program').value;
+  document.getElementById('add_fee').value = COL_DEFAULT_FEES[prog] || '';
+  updateInstallPreview();
+}
+
+// ── Fetch for update ───────────────────────────────────────
+async function fetchCollegeForUpdate() {
+  const sid = document.getElementById('upd_sid').value.trim();
+  if (!sid) return showToast('Enter a Student ID', 'error');
+  const rows = await fetch('/api/college/students').then(r => r.json());
+  const row  = rows.find(r => r.Student_ID === sid);
+  if (!row) return showToast('Student not found', 'error');
+  document.getElementById('upd_name').value   = row.Name || '';
+  document.getElementById('upd_father').value = row.Father_Name || '';
+  document.getElementById('upd_roll').value   = row.Roll_No || '';
+  document.getElementById('upd_year').value   = row.Academic_Year || '';
+  const prog = row.Program || row.Class || '';
+  const sec  = row.Section || 'A';
+  [...document.getElementById('upd_program').options].forEach((o,i) => {
+    if (o.value === prog) document.getElementById('upd_program').selectedIndex = i;
+  });
+  [...document.getElementById('upd_section').options].forEach((o,i) => {
+    if (o.value === sec) document.getElementById('upd_section').selectedIndex = i;
+  });
+  document.getElementById('updateForm').style.display = 'block';
+}
+
+async function saveCollegeUpdate() {
+  const sid = document.getElementById('upd_sid').value.trim();
+  const res = await apiPost('/api/college/update', {
+    student_id:    sid,
+    Name:          document.getElementById('upd_name').value,
+    Father_Name:   document.getElementById('upd_father').value,
+    Program:       document.getElementById('upd_program').value,
+    Section:       document.getElementById('upd_section').value,
+    Roll_No:       document.getElementById('upd_roll').value,
+    Academic_Year: document.getElementById('upd_year').value,
+  });
+  showToast(res.message, res.success ? 'success' : 'error');
+  if (res.success) loadCollegeTable();
+}
+
+// ── Fetch for delete ───────────────────────────────────────
+async function fetchCollegeForDelete() {
+  const sid = document.getElementById('del_sid').value.trim();
+  if (!sid) return showToast('Enter a Student ID', 'error');
+  const rows = await fetch('/api/college/students').then(r => r.json());
+  const row  = rows.find(r => r.Student_ID === sid);
+  if (!row) return showToast('Student not found', 'error');
+  document.getElementById('deleteInfo').innerHTML = `
+    <div class="d-flex align-items-center gap-3">
+      <div style="font-size:2rem">⚠️</div>
+      <div>
+        <div><strong>${row.Name}</strong> &nbsp; <span class="id-badge">${row.Student_ID}</span></div>
+        <div style="color:var(--text-muted)">${row.Program||row.Class} · Section ${row.Section} · ${row.Roll_No}</div>
+        <div style="color:var(--red);font-size:.8rem;margin-top:4px">This action cannot be undone.</div>
+      </div>
+    </div>`;
+  document.getElementById('deletePreview').style.display = 'block';
+}
+
+async function confirmDeleteCollege() {
+  const sid = document.getElementById('del_sid').value.trim();
+  const confirm = await Swal.fire({
+    title:'Are you sure?', text:'This student record will be permanently deleted.',
+    icon:'warning', showCancelButton:true,
+    confirmButtonText:'Yes, Delete', cancelButtonText:'Cancel'
+  });
+  if (!confirm.isConfirmed) return;
+  const res = await apiPost('/api/college/delete', { student_id: sid });
+  showToast(res.message, res.success ? 'success' : 'error');
+  if (res.success) {
+    document.getElementById('deletePreview').style.display = 'none';
+    document.getElementById('del_sid').value = '';
+    loadCollegeTable();
+  }
+}
+
+function downloadCSV() {
+  const prog = document.getElementById('filterProgram').value;
+  let url = '/api/college/download';
+  if (prog !== 'All') url += '?program=' + encodeURIComponent(prog);
+  window.location = url;
+}
+</script>
+{% endblock %}

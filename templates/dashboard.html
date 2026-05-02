@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">Welcome back, <span>Admin</span> 👋</h1>
+  <p class="page-subtitle">Here's a real-time snapshot of the EduFees system</p>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-xl col-md-4 col-6 fade-up fade-up-1">
+    <div class="stat-card gold-accent">
+      <div class="stat-icon" style="background:var(--gold-glow);color:var(--gold)">
+        <i class="bi bi-building-fill"></i>
+      </div>
+      <div class="stat-value" style="color:var(--gold)" id="s-college">{{ stats.total_college }}</div>
+      <div class="stat-label">College Students</div>
+    </div>
+  </div>
+  <div class="col-xl col-md-4 col-6 fade-up fade-up-2">
+    <div class="stat-card cyan-accent">
+      <div class="stat-icon" style="background:var(--cyan-glow);color:var(--cyan)">
+        <i class="bi bi-bank2"></i>
+      </div>
+      <div class="stat-value" style="color:var(--cyan)" id="s-uni">{{ stats.total_uni }}</div>
+      <div class="stat-label">University Students</div>
+    </div>
+  </div>
+  <div class="col-xl col-md-4 col-6 fade-up fade-up-3">
+    <div class="stat-card green-accent">
+      <div class="stat-icon" style="background:var(--green-bg);color:var(--green)">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="stat-value" style="color:var(--green)" id="s-paid">{{ stats.college_paid }}</div>
+      <div class="stat-label">College Fees Cleared</div>
+    </div>
+  </div>
+  <div class="col-xl col-md-4 col-6 fade-up fade-up-4">
+    <div class="stat-card blue-accent">
+      <div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div class="stat-value" style="color:var(--blue)" id="s-sem">{{ stats.uni_sem_done }}</div>
+      <div class="stat-label">Semesters Completed</div>
+    </div>
+  </div>
+  <div class="col-xl col-md-4 col-6 fade-up fade-up-5">
+    <div class="stat-card red-accent">
+      <div class="stat-icon" style="background:var(--red-bg);color:var(--red)">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div class="stat-value" style="color:var(--red)" id="s-pending">{{ stats.pending_records }}</div>
+      <div class="stat-label">Pending Sem Records</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts + Recent Tables ──────────────────────────────── -->
+<div class="row g-4 mb-4">
+
+  <!-- College Program Chart -->
+  <div class="col-lg-4 fade-up fade-up-2">
+    <div class="glass-card h-100">
+      <div class="card-header-custom">
+        <div class="card-header-icon"><i class="bi bi-pie-chart-fill"></i></div>
+        <div>
+          <div class="card-header-title">College by Program</div>
+          <div class="card-header-sub">Student distribution</div>
+        </div>
+      </div>
+      <div class="card-body-custom">
+        <div class="chart-wrap"><canvas id="collegeChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Uni Dept Chart -->
+  <div class="col-lg-4 fade-up fade-up-3">
+    <div class="glass-card h-100">
+      <div class="card-header-custom">
+        <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+          <i class="bi bi-bar-chart-fill"></i>
+        </div>
+        <div>
+          <div class="card-header-title">University by Dept</div>
+          <div class="card-header-sub">Top departments</div>
+        </div>
+      </div>
+      <div class="card-body-custom">
+        <div class="chart-wrap"><canvas id="uniChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fee Status Donut -->
+  <div class="col-lg-4 fade-up fade-up-4">
+    <div class="glass-card h-100">
+      <div class="card-header-custom">
+        <div class="card-header-icon" style="background:var(--green-bg);border-color:rgba(16,216,118,.3);color:var(--green)">
+          <i class="bi bi-donut"></i>
+        </div>
+        <div>
+          <div class="card-header-title">Fee Status Overview</div>
+          <div class="card-header-sub">Paid vs pending</div>
+        </div>
+      </div>
+      <div class="card-body-custom">
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Recent Students ─────────────────────────────────────── -->
+<div class="row g-4">
+  <div class="col-lg-6 fade-up fade-up-2">
+    <div class="glass-card">
+      <div class="card-header-custom">
+        <div class="card-header-icon"><i class="bi bi-people-fill"></i></div>
+        <div>
+          <div class="card-header-title">Recent College Students</div>
+          <div class="card-header-sub">Latest 10 entries</div>
+        </div>
+        <a href="/college" class="btn-ghost ms-auto" style="padding:6px 12px;font-size:.75rem">
+          View All <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      <div class="card-body-custom" style="padding:14px 22px">
+        <div class="table-responsive">
+          <table class="fee-table" id="recentCollegeTable">
+            <thead><tr><th>Name</th><th>Program</th><th>Section</th><th>Status</th></tr></thead>
+            <tbody id="recentCollegeTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 fade-up fade-up-3">
+    <div class="glass-card">
+      <div class="card-header-custom">
+        <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+          <i class="bi bi-person-video3"></i>
+        </div>
+        <div>
+          <div class="card-header-title">Recent University Students</div>
+          <div class="card-header-sub">Latest 10 entries</div>
+        </div>
+        <a href="/university" class="btn-ghost ms-auto" style="padding:6px 12px;font-size:.75rem">
+          View All <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      <div class="card-body-custom" style="padding:14px 22px">
+        <div class="table-responsive">
+          <table class="fee-table" id="recentUniTable">
+            <thead><tr><th>Name</th><th>Department</th><th>Semester</th><th>Fee/Sem</th></tr></thead>
+            <tbody id="recentUniTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const STATS = {{ stats|tojson }};
+
+// ── Build charts ──────────────────────────────────────────
+const GOLD  = '#f0a500', CYAN = '#00cfe8', GREEN='#10d876', RED='#ff4d4d', BLUE='#4d9fff';
+const PALETTE = ['#f0a500','#00cfe8','#10d876','#ff4d4d','#4d9fff','#c07bfa','#ff7c5b','#5be8a0','#ffbf00','#42b6f5'];
+const chartDefaults = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#6b8399', font: {size:11}, boxWidth:10 } } }
+};
+
+// College program donut
+const progData = STATS.program_breakdown || {};
+new Chart(document.getElementById('collegeChart'), {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(progData),
+    datasets: [{ data: Object.values(progData), backgroundColor: PALETTE,
+      borderColor: '#0b1929', borderWidth: 2 }]
+  },
+  options: { ...chartDefaults, cutout: '68%' }
+});
+
+// Uni dept bar
+const deptData = STATS.dept_breakdown || {};
+new Chart(document.getElementById('uniChart'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(deptData),
+    datasets: [{ label: 'Students', data: Object.values(deptData),
+      backgroundColor: CYAN + '99', borderColor: CYAN, borderWidth: 1, borderRadius: 5 }]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: { ...chartDefaults.plugins, legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#6b8399', font:{size:9} }, grid: { color: 'rgba(255,255,255,.04)' } },
+      y: { ticks: { color: '#6b8399' }, grid: { color: 'rgba(255,255,255,.04)' }, beginAtZero: true }
+    }
+  }
+});
+
+// Status donut
+const paid    = STATS.college_paid || 0;
+const pending = STATS.pending_records || 0;
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Fees Cleared', 'Pending'],
+    datasets: [{ data: [paid, pending],
+      backgroundColor: [GREEN+'cc', RED+'99'],
+      borderColor: '#0b1929', borderWidth: 2 }]
+  },
+  options: { ...chartDefaults, cutout: '68%' }
+});
+
+// ── Recent college students ───────────────────────────────
+fetch('/api/college/students').then(r=>r.json()).then(rows => {
+  const tbody = document.getElementById('recentCollegeTbody');
+  rows.slice(-10).reverse().forEach(r => {
+    tbody.innerHTML += `<tr>
+      <td><strong>${r.Name||''}</strong><br><span class="id-badge">${r.Student_ID||''}</span></td>
+      <td><span class="badge-program">${r.Program||r.Class||''}</span></td>
+      <td>${r.Section||''}</td>
+      <td>${statusBadge(r.All_Paid==='Yes'?'Yes':'No')}</td>
+    </tr>`;
+  });
+  if(!rows.length) tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;padding:20px">No students yet</td></tr>';
+});
+
+// ── Recent university students ────────────────────────────
+fetch('/api/university/students').then(r=>r.json()).then(rows => {
+  const tbody = document.getElementById('recentUniTbody');
+  rows.slice(-10).reverse().forEach(r => {
+    tbody.innerHTML += `<tr>
+      <td><strong>${r.Name||''}</strong><br><span class="id-badge">${r.Student_ID||''}</span></td>
+      <td>${r.Department||''}</td>
+      <td><span class="badge-complete">Sem ${r.Current_Semester||1}</span></td>
+      <td class="amount-cell">${fmtPKR(r.Semester_Fee||0)}</td>
+    </tr>`;
+  });
+  if(!rows.length) tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;padding:20px">No students yet</td></tr>';
+});
+</script>
+{% endblock %}

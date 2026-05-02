@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}University Students{% endblock %}
+{% block breadcrumb %}University Students{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">🏛️ University <span>Students</span></h1>
+  <p class="page-subtitle">Manage 15 departments · 8 semesters · Flexible enrollment</p>
+</div>
+
+<div class="custom-tabs fade-up fade-up-1">
+  <button class="custom-tab active" data-tab="view"   data-tab-group="uni"><i class="bi bi-table"></i> View All</button>
+  <button class="custom-tab" data-tab="fee"    data-tab-group="uni"><i class="bi bi-receipt"></i> Fee Records</button>
+  <button class="custom-tab" data-tab="add"    data-tab-group="uni"><i class="bi bi-person-plus-fill"></i> Add Student</button>
+  <button class="custom-tab" data-tab="update" data-tab-group="uni"><i class="bi bi-pencil-fill"></i> Update</button>
+  <button class="custom-tab" data-tab="delete" data-tab-group="uni"><i class="bi bi-trash3-fill"></i> Delete</button>
+</div>
+
+<!-- ═══ VIEW ALL ════════════════════════════════════════════ -->
+<div class="tab-pane-custom active" data-tab="view" data-tab-group="uni">
+  <div class="filter-bar fade-up fade-up-2">
+    <div class="form-group">
+      <label>Department</label>
+      <select class="form-select" id="filterDept" onchange="loadUniTable()">
+        <option value="All">All Departments</option>
+        {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="d-flex gap-2 align-items-end">
+      <button class="btn-gold" onclick="loadUniTable()"><i class="bi bi-search"></i> Search</button>
+    </div>
+  </div>
+  <div class="glass-card fade-up fade-up-3">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+        <i class="bi bi-person-video3"></i>
+      </div>
+      <div>
+        <div class="card-header-title">University Students</div>
+        <div class="card-header-sub" id="uniCount">Loading…</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="table-responsive">
+        <table id="uniTable" class="w-100"><thead><tr></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FEE RECORDS ═════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="fee" data-tab-group="uni">
+  <div class="filter-bar fade-up fade-up-2">
+    <div class="form-group">
+      <label>Department</label>
+      <select class="form-select" id="feeDept">
+        <option value="All">All Departments</option>
+        {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Semester</label>
+      <select class="form-select" id="feeSem">
+        <option value="All">All Semesters</option>
+        {% for s in range(1, max_semesters+1) %}<option value="{{ s }}">Semester {{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Student Name</label>
+      <input class="form-control" id="feeName" placeholder="Partial name OK…">
+    </div>
+    <div class="d-flex gap-2 align-items-end">
+      <button class="btn-gold" onclick="loadFeeRecords()"><i class="bi bi-search"></i> Search</button>
+      <button class="btn-ghost" onclick="downloadUniCSV()"><i class="bi bi-download"></i> Export</button>
+    </div>
+  </div>
+  <div class="glass-card fade-up fade-up-3">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--gold-glow);border-color:var(--border-gold);color:var(--gold)">
+        <i class="bi bi-receipt-cutoff"></i>
+      </div>
+      <div>
+        <div class="card-header-title">University Fee Records</div>
+        <div class="card-header-sub" id="feeCount">Use filters above to search</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="table-responsive">
+        <table id="feeTable" class="w-100"><thead><tr></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD STUDENT ══════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="add" data-tab-group="uni">
+  <div class="glass-card fade-up fade-up-1" style="max-width:760px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--green-bg);border-color:rgba(16,216,118,.3);color:var(--green)">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Add New University Student</div>
+        <div class="card-header-sub">Flexible semester enrollment — start from any semester</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Student Name *</label>
+          <input class="form-control" id="u_name" placeholder="Full name">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Father's Name</label>
+          <input class="form-control" id="u_father" placeholder="Father's full name">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Department *</label>
+          <select class="form-select" id="u_dept"
+            onchange="autoFillFee(this, {{ default_fees|tojson }}, 'u_fee'); updateUniInstallPreview()">
+            {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Roll Number *</label>
+          <input class="form-control" id="u_roll" placeholder="e.g. CS-2024-001">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Starting Semester *</label>
+          <select class="form-select" id="u_sem">
+            {% for s in range(1, max_semesters+1) %}
+            <option value="{{ s }}">Semester {{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Per-Semester Fee (Rs.) *</label>
+          <input class="form-control" id="u_fee" type="number" min="0" step="500"
+            value="{{ default_fees[departments[0]] if departments else 10000 }}"
+            oninput="updateUniInstallPreview()">
+        </div>
+        <div class="col-12">
+          <div style="background:var(--cyan-glow);border:1px solid rgba(0,207,232,.25);border-radius:8px;
+            padding:10px 16px;font-size:.85rem;color:var(--cyan)">
+            <i class="bi bi-info-circle"></i>
+            Each of <strong>2 installments</strong> this semester:
+            <strong id="uniInstallPreview">–</strong>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn-gold" onclick="addUniStudent()"><i class="bi bi-check-lg"></i> Enroll Student</button>
+        <button class="btn-ghost" onclick="clearUniForm()"><i class="bi bi-x-lg"></i> Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UPDATE ═══════════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="update" data-tab-group="uni">
+  <div class="glass-card fade-up fade-up-1" style="max-width:700px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--blue-bg);border-color:rgba(77,159,255,.3);color:var(--blue)">
+        <i class="bi bi-pencil-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Update University Student</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="d-flex gap-2 mb-4">
+        <input class="form-control" id="u_upd_sid" placeholder="Enter Student ID (UNI-XXXXXXXX)">
+        <button class="btn-gold flex-shrink-0" onclick="fetchUniForUpdate()"><i class="bi bi-search"></i> Fetch</button>
+      </div>
+      <div id="uniUpdateForm" style="display:none">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Name</label>
+            <input class="form-control" id="u_upd_name"></div>
+          <div class="col-md-6"><label class="form-label">Father Name</label>
+            <input class="form-control" id="u_upd_father"></div>
+          <div class="col-md-6"><label class="form-label">Roll No</label>
+            <input class="form-control" id="u_upd_roll"></div>
+          <div class="col-md-6"><label class="form-label">Department</label>
+            <select class="form-select" id="u_upd_dept">
+              {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <button class="btn-gold mt-4" onclick="saveUniUpdate()"><i class="bi bi-save"></i> Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DELETE ═══════════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="delete" data-tab-group="uni">
+  <div class="glass-card fade-up fade-up-1" style="max-width:600px">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--red-bg);border-color:rgba(255,77,77,.3);color:var(--red)">
+        <i class="bi bi-trash3-fill"></i>
+      </div>
+      <div><div class="card-header-title">Delete University Student</div>
+        <div class="card-header-sub">Also deletes all associated fee records</div></div>
+    </div>
+    <div class="card-body-custom">
+      <div class="d-flex gap-2 mb-4">
+        <input class="form-control" id="u_del_sid" placeholder="Enter Student ID">
+        <button class="btn-gold flex-shrink-0" onclick="fetchUniForDelete()"><i class="bi bi-search"></i> Fetch</button>
+      </div>
+      <div id="uniDeletePreview" style="display:none">
+        <div id="uniDeleteInfo" class="mb-3" style="background:var(--red-bg);border:1px solid rgba(255,77,77,.25);
+          border-radius:10px;padding:14px 18px;font-size:.87rem;"></div>
+        <button class="btn-danger" onclick="confirmDeleteUni()"><i class="bi bi-trash3-fill"></i> Permanently Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const UNI_DEFAULT_FEES = {{ default_fees|tojson }};
+
+function updateUniInstallPreview() {
+  const fee = parseFloat(document.getElementById('u_fee').value) || 0;
+  document.getElementById('uniInstallPreview').textContent = fmtPKR(fee / 2);
+}
+// Init fee on page load
+document.addEventListener('DOMContentLoaded', () => {
+  autoFillFee(document.getElementById('u_dept'), UNI_DEFAULT_FEES, 'u_fee');
+  updateUniInstallPreview();
+});
+
+// ── University Students Table ─────────────────────────────
+function loadUniTable() {
+  const dept = document.getElementById('filterDept').value;
+  let url = '/api/university/students' + (dept !== 'All' ? '?department=' + encodeURIComponent(dept) : '');
+  fetch(url).then(r => r.json()).then(rows => {
+    document.getElementById('uniCount').textContent = rows.length + ' student(s)';
+    buildTable('uniTable', rows, [
+      { title:'Student ID', data:'Student_ID', render: d => `<span class="id-badge">${d}</span>` },
+      { title:'Name', data:'Name',
+        render:(d,_,row) => `<strong>${d}</strong><br><small style="color:var(--text-muted)">${row.Father_Name||''}</small>` },
+      { title:'Department', data:'Department' },
+      { title:'Roll No', data:'Roll_No', render:d=>`<span class="mono" style="font-size:.78rem">${d}</span>` },
+      { title:'Semester', data:'Current_Semester',
+        render:d=>`<span class="badge-complete">Sem ${d}</span>` },
+      { title:'Sem Fee', data:'Semester_Fee', render:d=>`<span class="amount-cell">${fmtPKR(d)}</span>` },
+    ]);
+  });
+}
+loadUniTable();
+
+// ── Fee Records Table ─────────────────────────────────────
+function loadFeeRecords() {
+  const dept = document.getElementById('feeDept').value;
+  const sem  = document.getElementById('feeSem').value;
+  const name = document.getElementById('feeName').value.trim();
+  const p = new URLSearchParams();
+  if (dept !== 'All') p.append('department', dept);
+  if (sem  !== 'All') p.append('semester', sem);
+  if (name)           p.append('name', name);
+  const url = '/api/university/fee-records' + ([...p].length ? '?' + p : '');
+  fetch(url).then(r => r.json()).then(rows => {
+    document.getElementById('feeCount').textContent = rows.length + ' record(s) found';
+    buildTable('feeTable', rows, [
+      { title:'Record ID', data:'Record_ID', render:d=>`<span class="id-badge">${d}</span>` },
+      { title:'Student', data:'Student_Name',
+        render:(d,_,row)=>`<strong>${d}</strong><br><span class="id-badge">${row.Student_ID}</span>` },
+      { title:'Department', data:'Department' },
+      { title:'Sem', data:'Semester', render:d=>`<span class="badge-complete">S${d}</span>` },
+      { title:'Sem Fee', data:'Semester_Fee', render:d=>`<span class="amount-cell">${fmtPKR(d)}</span>` },
+      { title:'Install 1', data:'Install1_Status', render:d=>statusBadge(d) },
+      { title:'Install 2', data:'Install2_Status', render:d=>statusBadge(d) },
+      { title:'Sem Done', data:'Sem_Complete', render:d=>statusBadge(d) },
+    ]);
+  });
+}
+
+// ── Add University Student ────────────────────────────────
+async function addUniStudent() {
+  const data = {
+    name:              document.getElementById('u_name').value.trim(),
+    father_name:       document.getElementById('u_father').value.trim(),
+    department:        document.getElementById('u_dept').value,
+    roll_no:           document.getElementById('u_roll').value.trim(),
+    semester_fee:      parseFloat(document.getElementById('u_fee').value) || 0,
+    starting_semester: parseInt(document.getElementById('u_sem').value),
+  };
+  if (!data.name || !data.roll_no || data.semester_fee <= 0)
+    return showToast('Please fill all required fields', 'error');
+  const res = await apiPost('/api/university/add', data);
+  if (res.success) {
+    Swal.fire({ icon:'success', title:'Student Enrolled!',
+      html:`<p>${res.message}</p><code style="color:var(--gold)">${res.student_id}</code>`,
+      confirmButtonText:'Great!' });
+    clearUniForm(); loadUniTable();
+  } else showToast(res.message, 'error');
+}
+
+function clearUniForm() {
+  ['u_name','u_father','u_roll'].forEach(id => document.getElementById(id).value='');
+  autoFillFee(document.getElementById('u_dept'), UNI_DEFAULT_FEES, 'u_fee');
+  updateUniInstallPreview();
+}
+
+// ── Update ─────────────────────────────────────────────────
+async function fetchUniForUpdate() {
+  const sid  = document.getElementById('u_upd_sid').value.trim();
+  if (!sid) return showToast('Enter a Student ID', 'error');
+  const rows = await fetch('/api/university/students').then(r => r.json());
+  const row  = rows.find(r => r.Student_ID === sid);
+  if (!row) return showToast('Student not found', 'error');
+  document.getElementById('u_upd_name').value   = row.Name || '';
+  document.getElementById('u_upd_father').value = row.Father_Name || '';
+  document.getElementById('u_upd_roll').value   = row.Roll_No || '';
+  [...document.getElementById('u_upd_dept').options].forEach((o,i)=>{
+    if(o.value===row.Department) document.getElementById('u_upd_dept').selectedIndex=i;
+  });
+  document.getElementById('uniUpdateForm').style.display = 'block';
+}
+async function saveUniUpdate() {
+  const sid = document.getElementById('u_upd_sid').value.trim();
+  const res = await apiPost('/api/university/update', {
+    student_id:  sid,
+    Name:        document.getElementById('u_upd_name').value,
+    Father_Name: document.getElementById('u_upd_father').value,
+    Roll_No:     document.getElementById('u_upd_roll').value,
+    Department:  document.getElementById('u_upd_dept').value,
+  });
+  showToast(res.message, res.success?'success':'error');
+  if (res.success) loadUniTable();
+}
+
+// ── Delete ─────────────────────────────────────────────────
+async function fetchUniForDelete() {
+  const sid  = document.getElementById('u_del_sid').value.trim();
+  if (!sid) return showToast('Enter a Student ID','error');
+  const rows = await fetch('/api/university/students').then(r=>r.json());
+  const row  = rows.find(r=>r.Student_ID===sid);
+  if (!row) return showToast('Student not found','error');
+  document.getElementById('uniDeleteInfo').innerHTML=`
+    <div class="d-flex align-items-center gap-3">
+      <div style="font-size:2rem">⚠️</div>
+      <div>
+        <div><strong>${row.Name}</strong> &nbsp;<span class="id-badge">${row.Student_ID}</span></div>
+        <div style="color:var(--text-muted)">${row.Department} · Roll: ${row.Roll_No}</div>
+        <div style="color:var(--red);font-size:.8rem;margin-top:4px">All fee records will also be deleted.</div>
+      </div>
+    </div>`;
+  document.getElementById('uniDeletePreview').style.display='block';
+}
+async function confirmDeleteUni() {
+  const sid = document.getElementById('u_del_sid').value.trim();
+  const c = await Swal.fire({title:'Delete student?',text:'All fee records will be permanently removed.',
+    icon:'warning',showCancelButton:true,confirmButtonText:'Delete',cancelButtonText:'Cancel'});
+  if(!c.isConfirmed) return;
+  const res = await apiPost('/api/university/delete',{student_id:sid});
+  showToast(res.message, res.success?'success':'error');
+  if(res.success){
+    document.getElementById('uniDeletePreview').style.display='none';
+    document.getElementById('u_del_sid').value='';
+    loadUniTable();
+  }
+}
+function downloadUniCSV(){
+  const dept=document.getElementById('feeDept').value;
+  window.location='/api/university/download'+(dept!=='All'?'?department='+encodeURIComponent(dept):'');
+}
+</script>
+{% endblock %}

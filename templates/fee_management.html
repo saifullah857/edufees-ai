@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Fee Management{% endblock %}
+{% block breadcrumb %}Fee Management{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">💰 Fee <span>Management</span></h1>
+  <p class="page-subtitle">Approve installments for college and university students</p>
+</div>
+
+<div class="custom-tabs fade-up fade-up-1">
+  <button class="custom-tab active" data-tab="college" data-tab-group="fees">
+    <i class="bi bi-building-fill"></i> College Installments
+  </button>
+  <button class="custom-tab" data-tab="university" data-tab-group="fees">
+    <i class="bi bi-bank2"></i> University Installments
+  </button>
+</div>
+
+<!-- ═══ COLLEGE FEE ══════════════════════════════════════════ -->
+<div class="tab-pane-custom active" data-tab="college" data-tab-group="fees">
+
+  <!-- Approve Form -->
+  <div class="glass-card mb-4 fade-up fade-up-2">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--green-bg);border-color:rgba(16,216,118,.3);color:var(--green)">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Approve College Installment</div>
+        <div class="card-header-sub">4 installments per academic year</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label">Student ID *</label>
+          <input class="form-control" id="col_approve_sid" placeholder="COL-XXXXXXXX">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Installment Number</label>
+          <select class="form-select" id="col_approve_inst">
+            <option value="1">Installment 1</option>
+            <option value="2">Installment 2</option>
+            <option value="3">Installment 3</option>
+            <option value="4">Installment 4</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Filter Table by Program</label>
+          <select class="form-select" id="col_fee_prog" onchange="loadColFeeTable()">
+            <option value="All">All Programs</option>
+            {% for p in programs %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn-gold w-100" onclick="approveCollegeFee()">
+            <i class="bi bi-check-lg"></i> Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Table -->
+  <div class="glass-card fade-up fade-up-3">
+    <div class="card-header-custom">
+      <div class="card-header-icon"><i class="bi bi-clock-fill"></i></div>
+      <div>
+        <div class="card-header-title">Pending College Fee Students</div>
+        <div class="card-header-sub" id="colFeeCount">Loading…</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="table-responsive">
+        <table id="colFeeTable" class="w-100"><thead><tr></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UNIVERSITY FEE ════════════════════════════════════════ -->
+<div class="tab-pane-custom" data-tab="university" data-tab-group="fees">
+
+  <!-- Approve Form -->
+  <div class="glass-card mb-4 fade-up fade-up-2">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Approve University Installment</div>
+        <div class="card-header-sub">2 installments per semester — auto-advances on completion</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label">Record ID *</label>
+          <input class="form-control" id="uni_approve_rid" placeholder="UFR-XXXXXXXX">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Installment Number</label>
+          <select class="form-select" id="uni_approve_inst">
+            <option value="1">Installment 1</option>
+            <option value="2">Installment 2</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Filter Table by Department</label>
+          <select class="form-select" id="uni_fee_dept" onchange="loadUniFeeTable()">
+            <option value="All">All Departments</option>
+            {% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn-cyan w-100" onclick="approveUniFee()">
+            <i class="bi bi-check-lg"></i> Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Fee Records -->
+  <div class="glass-card fade-up fade-up-3">
+    <div class="card-header-custom">
+      <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+        <i class="bi bi-receipt-cutoff"></i>
+      </div>
+      <div>
+        <div class="card-header-title">Pending University Fee Records</div>
+        <div class="card-header-sub" id="uniFeeCount">Loading…</div>
+      </div>
+    </div>
+    <div class="card-body-custom">
+      <div class="table-responsive">
+        <table id="uniFeeTable" class="w-100"><thead><tr></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── College Fee Table ─────────────────────────────────────
+function loadColFeeTable() {
+  const prog = document.getElementById('col_fee_prog').value;
+  let url = '/api/college/students' + (prog !== 'All' ? '?program=' + encodeURIComponent(prog) : '');
+  fetch(url).then(r => r.json()).then(rows => {
+    const pending = rows.filter(r => r.All_Paid !== 'Yes');
+    document.getElementById('colFeeCount').textContent = pending.length + ' student(s) with pending installments';
+    buildTable('colFeeTable', pending, [
+      { title:'Student ID', data:'Student_ID', render:d=>`<span class="id-badge">${d}</span>` },
+      { title:'Name', data:'Name' },
+      { title:'Program', data:null, render:(_,__,r)=>`<span class="badge-program">${r.Program||r.Class||''}</span>` },
+      { title:'Install 1', data:'Install1_Status', render:d=>statusBadge(d) },
+      { title:'Install 2', data:'Install2_Status', render:d=>statusBadge(d) },
+      { title:'Install 3', data:'Install3_Status', render:d=>statusBadge(d) },
+      { title:'Install 4', data:'Install4_Status', render:d=>statusBadge(d) },
+      { title:'Total Fee', data:'Total_Annual_Fee', render:d=>`<span class="amount-cell">${fmtPKR(d)}</span>` },
+      { title:'Action', data:null, render:(_,__,row)=>`
+        <button class="btn-gold" style="padding:5px 12px;font-size:.75rem"
+          onclick="quickApproveCollege('${row.Student_ID}')">
+          <i class="bi bi-check"></i> Quick Approve
+        </button>` },
+    ]);
+  });
+}
+loadColFeeTable();
+
+// ── University Fee Table ──────────────────────────────────
+function loadUniFeeTable() {
+  const dept = document.getElementById('uni_fee_dept').value;
+  let url = '/api/university/fee-records' + (dept !== 'All' ? '?department=' + encodeURIComponent(dept) : '');
+  fetch(url).then(r => r.json()).then(rows => {
+    const pending = rows.filter(r => r.Sem_Complete !== 'Yes');
+    document.getElementById('uniFeeCount').textContent = pending.length + ' pending record(s)';
+    buildTable('uniFeeTable', pending, [
+      { title:'Record ID', data:'Record_ID', render:d=>`<span class="id-badge">${d}</span>` },
+      { title:'Student', data:'Student_Name' },
+      { title:'Department', data:'Department' },
+      { title:'Semester', data:'Semester', render:d=>`<span class="badge-complete">S${d}</span>` },
+      { title:'Sem Fee', data:'Semester_Fee', render:d=>`<span class="amount-cell">${fmtPKR(d)}</span>` },
+      { title:'Install 1', data:'Install1_Status', render:d=>statusBadge(d) },
+      { title:'Install 2', data:'Install2_Status', render:d=>statusBadge(d) },
+      { title:'Action', data:null, render:(_,__,row)=>`
+        <button class="btn-cyan" style="padding:5px 12px;font-size:.75rem"
+          onclick="quickApproveUni('${row.Record_ID}')">
+          <i class="bi bi-check"></i> Quick Approve
+        </button>` },
+    ]);
+  });
+}
+loadUniFeeTable();
+
+// ── Approve college fee ───────────────────────────────────
+async function approveCollegeFee() {
+  const sid  = document.getElementById('col_approve_sid').value.trim();
+  const inst = parseInt(document.getElementById('col_approve_inst').value);
+  if (!sid) return showToast('Enter a Student ID', 'error');
+  const res = await apiPost('/api/college/approve', { student_id: sid, installment_number: inst });
+  if (res.success) {
+    if (res.all_paid) {
+      Swal.fire({ icon:'success', title:'🎉 All Paid!', text: res.message, confirmButtonText:'Excellent!' });
+    } else showToast(res.message, 'success');
+    loadColFeeTable();
+  } else showToast(res.message, 'error');
+}
+
+async function quickApproveCollege(sid) {
+  document.getElementById('col_approve_sid').value = sid;
+  // Find next pending installment
+  const rows = await fetch('/api/college/students').then(r=>r.json());
+  const row  = rows.find(r => r.Student_ID === sid);
+  if (!row) return;
+  for (let i = 1; i <= 4; i++) {
+    if (row[`Install${i}_Status`] !== 'Approved') {
+      document.getElementById('col_approve_inst').value = i;
+      break;
+    }
+  }
+  approveCollegeFee();
+}
+
+// ── Approve university fee ────────────────────────────────
+async function approveUniFee() {
+  const rid  = document.getElementById('uni_approve_rid').value.trim();
+  const inst = parseInt(document.getElementById('uni_approve_inst').value);
+  if (!rid) return showToast('Enter a Record ID', 'error');
+  const res = await apiPost('/api/university/approve', { record_id: rid, installment_number: inst });
+  if (res.success) {
+    if (res.sem_advanced) {
+      Swal.fire({ icon:'success', title:'Semester Complete! 🎓',
+        text: res.message + ' New semester record auto-created.',
+        confirmButtonText:'Great!' });
+    } else showToast(res.message, 'success');
+    loadUniFeeTable();
+  } else showToast(res.message, 'error');
+}
+
+async function quickApproveUni(rid) {
+  document.getElementById('uni_approve_rid').value = rid;
+  // Find next pending install for this record
+  const rows = await fetch('/api/university/fee-records').then(r=>r.json());
+  const row  = rows.find(r => r.Record_ID === rid);
+  if (!row) return;
+  if (row.Install1_Status !== 'Approved')      document.getElementById('uni_approve_inst').value = 1;
+  else if (row.Install2_Status !== 'Approved') document.getElementById('uni_approve_inst').value = 2;
+  approveUniFee();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}Fee Structures{% endblock %}
+{% block breadcrumb %}Fee Structures{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">📋 Fee <span>Structures</span></h1>
+  <p class="page-subtitle">Default annual and semester fees — overridable per student at enrollment</p>
+</div>
+
+<div class="row g-4">
+
+  <!-- ── College Programs ──────────────────────────────── -->
+  <div class="col-12 fade-up fade-up-1">
+    <div class="glass-card">
+      <div class="card-header-custom">
+        <div class="card-header-icon"><i class="bi bi-building-fill"></i></div>
+        <div>
+          <div class="card-header-title">College Programs — Annual Fee Structure</div>
+          <div class="card-header-sub">4 installments per academic year · Fees are editable per student</div>
+        </div>
+      </div>
+      <div class="card-body-custom" style="padding:0">
+        <div class="table-responsive">
+          <table class="fee-table">
+            <thead>
+              <tr>
+                <th>Program</th>
+                <th>Annual Fee</th>
+                <th>Per Installment</th>
+                <th>Installments / Year</th>
+                <th>Estimated 2-Year Total</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in college_rows %}
+              <tr>
+                <td>
+                  <span class="badge-program">{{ row.program }}</span>
+                </td>
+                <td class="amount-cell">Rs. {{ "{:,.0f}".format(row.annual_fee) }}</td>
+                <td class="amount-cell" style="color:var(--cyan)">Rs. {{ "{:,.0f}".format(row.installment) }}</td>
+                <td><span class="badge-complete">{{ row.installments }} / year</span></td>
+                <td class="amount-cell" style="color:var(--green)">
+                  Rs. {{ "{:,.0f}".format(row.annual_fee * 2) }}
+                </td>
+                <td style="min-width:160px">
+                  <div style="background:var(--bg-secondary);border-radius:20px;height:7px;overflow:hidden">
+                    <div style="background:linear-gradient(90deg,var(--gold),var(--gold-dim));
+                      height:100%;width:{{ [row.annual_fee / 30000 * 100, 100]|min|int }}%;
+                      border-radius:20px;transition:width .8s ease"></div>
+                  </div>
+                  <div style="font-size:.7rem;color:var(--text-muted);margin-top:3px">
+                    {{ [row.annual_fee / 30000 * 100, 100]|min|int }}% of max
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── University Departments ────────────────────────── -->
+  <div class="col-12 fade-up fade-up-2">
+    <div class="glass-card">
+      <div class="card-header-custom">
+        <div class="card-header-icon" style="background:var(--cyan-glow);border-color:rgba(0,207,232,.3);color:var(--cyan)">
+          <i class="bi bi-bank2"></i>
+        </div>
+        <div>
+          <div class="card-header-title">University Departments — Semester Fee Structure</div>
+          <div class="card-header-sub">2 installments per semester · 8 semesters total · Auto-advances on completion</div>
+        </div>
+      </div>
+      <div class="card-body-custom" style="padding:0">
+        <div class="table-responsive">
+          <table class="fee-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Per Semester</th>
+                <th>Per Installment</th>
+                <th>Total (8 Sems)</th>
+                <th>Fee Tier</th>
+                <th>Relative Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in uni_rows %}
+              {% set max_fee = 18000 %}
+              {% set pct = [row.semester_fee / max_fee * 100, 100]|min|int %}
+              {% if pct >= 80 %}
+                {% set tier = "Premium" %}
+                {% set tier_cls = "badge-approved" %}
+              {% elif pct >= 60 %}
+                {% set tier = "Standard" %}
+                {% set tier_cls = "badge-complete" %}
+              {% else %}
+                {% set tier = "Basic" %}
+                {% set tier_cls = "badge-pending" %}
+              {% endif %}
+              <tr>
+                <td><strong>{{ row.department }}</strong></td>
+                <td class="amount-cell">Rs. {{ "{:,.0f}".format(row.semester_fee) }}</td>
+                <td class="amount-cell" style="color:var(--cyan)">Rs. {{ "{:,.0f}".format(row.installment) }}</td>
+                <td class="amount-cell" style="color:var(--green)">Rs. {{ "{:,.0f}".format(row.total_program) }}</td>
+                <td><span class="{{ tier_cls }}">{{ tier }}</span></td>
+                <td style="min-width:160px">
+                  <div style="background:var(--bg-secondary);border-radius:20px;height:7px;overflow:hidden">
+                    <div style="background:linear-gradient(90deg,var(--cyan),var(--cyan-dim));
+                      height:100%;width:{{ pct }}%;
+                      border-radius:20px;transition:width .8s ease"></div>
+                  </div>
+                  <div style="font-size:.7rem;color:var(--text-muted);margin-top:3px">{{ pct }}% of max</div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Summary Info Cards ────────────────────────────── -->
+  <div class="col-md-4 fade-up fade-up-3">
+    <div class="glass-card h-100">
+      <div class="card-body-custom text-center" style="padding:28px">
+        <div style="font-size:2.5rem;margin-bottom:8px">🏫</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:6px">
+          College Programs
+        </div>
+        <div style="color:var(--text-muted);font-size:.85rem;margin-bottom:16px">
+          {{ college_rows|length }} programs · 4 installments each
+        </div>
+        <div class="d-flex justify-content-center gap-3">
+          <div>
+            <div class="amount-cell" style="font-size:1.3rem">
+              Rs. {{ "{:,.0f}".format(college_rows|map(attribute='annual_fee')|min) }}
+            </div>
+            <div style="font-size:.7rem;color:var(--text-muted)">Lowest</div>
+          </div>
+          <div style="color:var(--border)">—</div>
+          <div>
+            <div class="amount-cell" style="font-size:1.3rem">
+              Rs. {{ "{:,.0f}".format(college_rows|map(attribute='annual_fee')|max) }}
+            </div>
+            <div style="font-size:.7rem;color:var(--text-muted)">Highest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 fade-up fade-up-4">
+    <div class="glass-card h-100">
+      <div class="card-body-custom text-center" style="padding:28px">
+        <div style="font-size:2.5rem;margin-bottom:8px">🏛️</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:6px">
+          University Departments
+        </div>
+        <div style="color:var(--text-muted);font-size:.85rem;margin-bottom:16px">
+          {{ uni_rows|length }} departments · 2 installs × 8 sems
+        </div>
+        <div class="d-flex justify-content-center gap-3">
+          <div>
+            <div class="amount-cell" style="font-size:1.3rem">
+              Rs. {{ "{:,.0f}".format(uni_rows|map(attribute='semester_fee')|min) }}
+            </div>
+            <div style="font-size:.7rem;color:var(--text-muted)">Lowest/sem</div>
+          </div>
+          <div style="color:var(--border)">—</div>
+          <div>
+            <div class="amount-cell" style="font-size:1.3rem">
+              Rs. {{ "{:,.0f}".format(uni_rows|map(attribute='semester_fee')|max) }}
+            </div>
+            <div style="font-size:.7rem;color:var(--text-muted)">Highest/sem</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 fade-up fade-up-5">
+    <div class="glass-card h-100">
+      <div class="card-body-custom" style="padding:28px">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--gold)">
+          <i class="bi bi-lightbulb-fill"></i> Quick Notes
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
+          <li style="font-size:.83rem;color:var(--text-muted);display:flex;gap:8px">
+            <span style="color:var(--green)">✓</span>
+            Fees shown are defaults — editable per student at enrollment
+          </li>
+          <li style="font-size:.83rem;color:var(--text-muted);display:flex;gap:8px">
+            <span style="color:var(--green)">✓</span>
+            University students auto-advance to the next semester on completion
+          </li>
+          <li style="font-size:.83rem;color:var(--text-muted);display:flex;gap:8px">
+            <span style="color:var(--green)">✓</span>
+            College students can enroll from 1st Year or 2nd Year
+          </li>
+          <li style="font-size:.83rem;color:var(--text-muted);display:flex;gap:8px">
+            <span style="color:var(--green)">✓</span>
+            University students can start from any semester (1–8)
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
