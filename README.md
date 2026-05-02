@@ -1,10 +1,9 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=EduFees%20AI&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=38&desc=🎓%20AI-Powered%20College%20%26%20University%20Fees%20Management&descAlignY=62&descSize=20&descColor=fff" width="100%"/>
+
 
 <!-- Typing Animation -->
-<a href="https://github.com/saifullah857/edufees-ai">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=22&pause=1000&color=6C63FF&center=true&vCenter=true&multiline=true&width=700&height=60&lines=Manage+Student+Fees+with+AI+🤖;Natural+Language+%7C+Excel+%7C+Flask+%7C+Agno" alt="Typing SVG" />
+<a href="https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=700&size=22&pause=1000&color=6C63FF&center=true&vCenter=true&multiline=true&width=700&height=60&lines=Manage+Student+Fees+with+AI+%F0%9F%A4%96;Natural+Language+%7C+Excel+%7C+Flask+%7C+Agno" alt="Typing SVG" />
 </a>
 
 <br/>
