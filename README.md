@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=EduFees%20AI&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=38&desc=🎓%20AI-Powered%20College%20%26%20University%20Fees%20Management&descAlignY=62&descSize=20&descColor=fff" width="100%"/>
 
-### 🤖 Manage Student Fees · Powered by AI · Built for Education
+
+## 🤖 Manage Student Fees · Powered by AI · Built for Education
 #### `Natural Language` &nbsp;|&nbsp; `Excel`&nbsp; |&nbsp; `Flask` &nbsp;|&nbsp; `Agno` &nbsp;|&nbsp; `Groq` &nbsp;|&nbsp; `Gemini`
 
 <br/>
